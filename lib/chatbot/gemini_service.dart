@@ -1,37 +1,31 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 
 class GeminiService {
-  // تذكر: ضع هنا مفتاحك الجديد (بدون مسافات)
-  static const String apiKey = "AIzaSyBUVmrLjlhrpQ8hXtra0R7yoJWcppeJ6eI";
+  // 1. تأكد من وضع API Key جديد تماماً (غير الذي نشرته سابقاً)
+  static const String apiKey = "AIzaSyA3eKpWErhJfzO9ataX9gmFAyNb5abvack";
 
   static Future<String> sendMessage(String message) async {
-
-    print("My API Key is: $apiKey");
-    if (apiKey.isEmpty) {
-      print("تحذير: الـ API Key فارغ، تأكد من ملف .env أو المتغير");
-      return "خطأ: المفتاح غير موجود";
-    }
-
-
     try {
-      final model = GenerativeModel(
-        model: 'gemini-1.5-flash',
-        apiKey: 'AIzaSyBUVmrLjlhrpQ8hXtra0R7yoJWcppeJ6eI',
-      );
+      // 2. استخدم gemini-1.5-flash فهو يدعم v1beta بشكل أفضل
+      final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
 
+      // 3. تأكد من أن الـ Content يتم إرساله كقائمة (List)
       final content = [Content.text(message)];
-
 
       final response = await model.generateContent(content);
 
       if (response.text != null) {
         return response.text!;
       } else {
-        return "البوت لم يقم بالرد";
+        return "⚠️ البوت لم يعطِ ردًا نصيًا";
       }
-    } catch (e) {
-      print("Error: $e"); // هذا السطر سيخبرنا بالسبب الدقيق إذا فشل الاتصال
-      return "حدث خطأ أثناء الاتصال بالبوت";
+    } catch (error) {
+      print("Detailed Error Type: ${error.runtimeType}");
+      print("Detailed Error Message: $error");
+
+      // هذا السطر سيخبرك إذا كانت المشكلة SocketException (إنترنت)
+      // أو شيئاً آخر متعلق بالـ API Key
+      return "حدث خطأ: $error";
     }
   }
 }

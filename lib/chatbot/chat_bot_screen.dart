@@ -1,4 +1,9 @@
+import 'dart:math';
+
+import 'package:event_app/core/providers/app_configprovider.dart';
+import 'package:event_app/core/theme/app_color.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'chat_message.dart';
 import 'gemini_service.dart';
 
@@ -30,8 +35,18 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var appConfigProvider = Provider.of<AppConfigprovider>(context);
     return Scaffold(
-      appBar: AppBar(title: Text("ChatBot")),
+      appBar: AppBar(
+        title: Text(
+          "ChatBot",
+          style: TextStyle(
+            color: appConfigProvider.isDark()
+                ? AppColors.lightBlue
+                : AppColors.purple,
+          ),
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -48,9 +63,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
                     margin: EdgeInsets.all(8),
                     padding: EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: msg.isUser
-                          ? Colors.blue
-                          : Colors.grey[300],
+                      color: msg.isUser ? Colors.blue : Colors.grey[300],
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -67,7 +80,9 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
 
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(8.0), // لإضافة مسافة حول مربع النص والزر
+              padding: const EdgeInsets.all(
+                8.0,
+              ), // لإضافة مسافة حول مربع النص والزر
               child: Row(
                 children: [
                   Expanded(
@@ -75,16 +90,17 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
                       controller: controller,
                       decoration: InputDecoration(
                         hintText: "Ask something...",
-                        border: OutlineInputBorder(), // إضافة حدود للمربع تجعله أجمل
-                        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        border:
+                            OutlineInputBorder(), // إضافة حدود للمربع تجعله أجمل
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                       ),
                     ),
                   ),
                   SizedBox(width: 8), // مسافة صغيرة بين النص والزر
-                  IconButton(
-                    icon: Icon(Icons.send),
-                    onPressed: sendMessage,
-                  )
+                  IconButton(icon: Icon(Icons.send), onPressed: sendMessage),
                 ],
               ),
             ),

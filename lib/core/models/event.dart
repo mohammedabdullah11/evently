@@ -9,7 +9,9 @@ class Event {
   int? eventTime;
   int? categoryId;
   String? location;
-  List<String>?favoriteList;
+  List<String>? favoriteList;
+  double? lat;
+  double? lng;
   Event({
     this.id,
     this.title,
@@ -19,30 +21,38 @@ class Event {
     this.categoryId,
     this.location,
     this.favoriteList,
-  });
-  //create function to convert Event object to json object(to firestore)
+    this.lat,
+    this.lng,
+  }) {
+    if (lat == null || lng == null) {
+      throw Exception("Event must have location");
+    }
+  }
+
   Map<String, dynamic> toFireStore() {
     return {
       'id': id,
       'title': title,
       'description': description,
       'eventDate': eventDate,
-      'location': location,
       'eventTime': eventTime,
       'categoryId': categoryId,
-      'favoriteList':favoriteList??[]
+      'favoriteList': favoriteList ?? [],
+      'lat': lat,
+      'lng': lng,
     };
   }
 
-  //named constructor to create an Event object from a Firestore document
+  //create function to convert Event object to json object(to firestore)
   Event.fromFireStore(Map<String, dynamic> data) {
     id = data['id'];
     title = data['title'];
     description = data['description'];
     eventDate = data['eventDate'];
     eventTime = data['eventTime'];
-    location = data['location'];
     favoriteList = List<String>.from(data['favoriteList'] ?? []);
+    lat = data['lat'];
+    lng = data['lng'];
 
     //داله بتدور في الليست عشان تجيب الابجكت اللي الايدي بتاعه بيساوي الايدي اللي جاي من الفايرستور
     final incomingCategoryId = data['categoryId'] as int?;

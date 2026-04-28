@@ -13,7 +13,7 @@ class UserDataCard extends StatefulWidget {
   final Category selectedCategory;
   final List<Category> categories;
   final Function(int) changeSelectedCategory;
-  
+
   const UserDataCard({
     this.user,
     required this.selectedCategory,
@@ -32,7 +32,7 @@ class _UserDataCardState extends State<UserDataCard> {
     var appConfigProvider = Provider.of<AppConfigprovider>(context);
     var size = MediaQuery.of(context).size;
     var width = size.width;
-  
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: width * 0.05,
@@ -89,22 +89,24 @@ class _UserDataCardState extends State<UserDataCard> {
                           SizedBox(width: width * 0.01),
                           Text(
                             AppLocalizations.of(context)!.cairo,
-                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                              color: appConfigProvider.isDark()
-                                  ? AppColors.offWhite
-                                  : AppColors.lightBlue,
-                              fontSize: width * 0.035,
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium!
+                                .copyWith(
+                                  color: appConfigProvider.isDark()
+                                      ? AppColors.offWhite
+                                      : AppColors.lightBlue,
+                                  fontSize: width * 0.035,
+                                ),
                           ),
                           SizedBox(width: width * 0.01),
                           Text(
                             AppLocalizations.of(context)!.egypt,
-                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                              color: appConfigProvider.isDark()
-                                  ? AppColors.offWhite
-                                  : AppColors.lightBlue,
-                              fontSize: width * 0.035,
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium!
+                                .copyWith(
+                                  color: appConfigProvider.isDark()
+                                      ? AppColors.offWhite
+                                      : AppColors.lightBlue,
+                                  fontSize: width * 0.035,
+                                ),
                           ),
                         ],
                       ),
@@ -161,10 +163,10 @@ class _UserDataCardState extends State<UserDataCard> {
               categories: widget.categories,
               selectedCategory: widget.selectedCategory,
               changeSelectedCategory: widget.changeSelectedCategory,
-            )
+            ),
           ],
         ),
-      ),  
+      ),
     );
   }
 }

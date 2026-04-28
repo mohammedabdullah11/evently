@@ -1,9 +1,11 @@
-import 'package:event_app/core/ui/home/tabs/home/add_event/widget/tapcontroller.dart';
+import 'package:event_app/core/models/category_model.dart';
+import 'package:event_app/core/models/event.dart';
+import 'package:event_app/core/ui/home/tabs/mabs/mab_tab.dart';
 import 'package:event_app/core/ui/home/tabs/home/view_model/home_view_model.dart';
 import 'package:event_app/core/ui/home/tabs/home/view_model/navigator_view_model.dart';
-import 'package:event_app/core/ui/home/tabs/mabs/mab_tab.dart';
 import 'package:event_app/l10n/translations/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -17,180 +19,206 @@ class EventManagementScreen extends StatefulWidget {
 
 class _EventManagementScreenState extends State<EventManagementScreen>
     implements NavigatorViewModel {
-  late HomeViewModel viewModel;
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+
+  final HomeViewModel homeViewModel = HomeViewModel();
+
+  Category selectedCategory = Category.categories[0];
+
+  DateTime? selectedDate;
+  TimeOfDay? selectedTime;
+  LatLng? selectedLocation;
 
   @override
   void initState() {
     super.initState();
-    viewModel = HomeViewModel();
-    viewModel.navigatorViewModel = this;
+    homeViewModel.navigatorViewModel = this;
   }
 
   @override
   Widget build(BuildContext context) {
-    var height = MediaQuery.of(context).size.height;
-    return ChangeNotifierProvider<HomeViewModel>.value(
-      value: viewModel,
+    final height = MediaQuery.of(context).size.height;
+
+    return ChangeNotifierProvider.value(
+      value: homeViewModel,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            AppLocalizations.of(context)!.createEvent,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-        ),
-        body: Consumer<HomeViewModel>(
-          builder: (context, vm, _) {
-            return Form(
-              key: formKey,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.asset(vm.selectedCategory.imagePath),
-                  ),
-                  SizedBox(height: height * 0.01),
+        appBar: AppBar(title: Text(AppLocalizations.of(context)!.createEvent)),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            /// 🖼 CATEGORY IMAGE (UNCHANGED)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(selectedCategory.imagePath),
+            ),
 
-                  /// Category Tabs
-                  Consumer<HomeViewModel>(
-                    builder: ( context,vm, _) {
-                       return Tapcontroller(
-                      selectedCategory: vm.selectedCategory,
-                      onCategoryChanged: (category) {
-                        vm.changeSelectedCategory(
-                          vm.categories.indexOf(category),
-                        
-                        );
-                      },
-                    ); },
-                    
-                  ),
+            SizedBox(height: height * 0.02),
 
-                  SizedBox(height: height * 0.02),
+            /// 🏷 CATEGORY SELECTOR (UNCHANGED)
+            Text("Category", style: Theme.of(context).textTheme.bodyLarge),
+            const SizedBox(height: 10),
 
-                  /// Title
-                  Text(AppLocalizations.of(context)!.title),
-                  SizedBox(height: height * 0.01),
-                  TextFormField(
-                    controller: vm.titleController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Title is required";
-                      }
-                      return null;
+            SizedBox(
+              height: 100,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: Category.categories.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  final category = Category.categories[index];
+                  final isSelected = selectedCategory.id == category.id;
+
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedCategory = category;
+                      });
                     },
-                  ),
-
-                  SizedBox(height: height * 0.02),
-
-                  /// Description
-                  Text(AppLocalizations.of(context)!.description),
-                  SizedBox(height: height * 0.01),
-                  TextFormField(
-                    controller: vm.descriptionController,
-                    maxLines: 5,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Description is required";
-                      }
-                      return null;
-                    },
-                  ),
-
-                  SizedBox(height: height * 0.02),
-
-                  /// Date Picker
-                  Row(
-                    children: [
-                      const Icon(Icons.calendar_month),
-                      const SizedBox(width: 8),
-                      Text(AppLocalizations.of(context)!.eventDate),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: () async {
-                          DateTime? date = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime.now().add(
-                              const Duration(days: 365),
-                            ),
-                          );
-                          if (date != null) vm.setSelectedDate(date);
-                        },
-                        child: Text(
-                          vm.selectedDate == null
-                              ? AppLocalizations.of(context)!.chooseDate
-                              : DateFormat(
-                                  'dd/MM/yyyy',
-                                ).format(vm.selectedDate!),
-                        ),
+                    child: Container(
+                      width: 120,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: isSelected
+                            ? Colors.blue
+                            : Theme.of(context).cardColor,
                       ),
-                    ],
-                  ),
-
-                  /// Time Picker
-                  Row(
-                    children: [
-                      const Icon(Icons.access_time),
-                      const SizedBox(width: 8),
-                      Text(AppLocalizations.of(context)!.eventTime),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: () async {
-                          TimeOfDay? time = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.now(),
-                          );
-                          if (time != null) vm.setSelectedTime(time);
-                        },
-                        child: Text(
-                          vm.selectedTime == null
-                              ? AppLocalizations.of(context)!.chooseTime
-                              : vm.selectedTime!.format(context),
-                        ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(category.imagePath, height: 50),
+                          const SizedBox(height: 6),
+                          Text(category.nameEn),
+                        ],
                       ),
-                    ],
-                  ),
-
-                  SizedBox(height: height * 0.02),
-
-                  /// Location
-                  OutlinedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, MapTab.routeName);
-                    },
-                    child: Row(
-                      children: const [
-                        Icon(Icons.location_on),
-                        SizedBox(width: 10),
-                        Text("Choose Event Location"),
-                        Spacer(),
-                        Icon(Icons.arrow_forward_ios),
-                      ],
                     ),
+                  );
+                },
+              ),
+            ),
+
+            SizedBox(height: height * 0.02),
+
+            /// TITLE
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(hintText: "Event title"),
+            ),
+
+            SizedBox(height: height * 0.02),
+
+            /// DESCRIPTION
+            TextField(
+              controller: descriptionController,
+              maxLines: 4,
+              decoration: const InputDecoration(hintText: "Event description"),
+            ),
+
+            SizedBox(height: height * 0.02),
+
+            /// DATE
+            TextButton(
+              onPressed: () async {
+                selectedDate = await showDatePicker(
+                  context: context,
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime(2100),
+                  initialDate: DateTime.now(),
+                );
+                setState(() {});
+              },
+              child: Text(
+                selectedDate == null
+                    ? "Choose Date"
+                    : DateFormat('dd/MM/yyyy').format(selectedDate!),
+              ),
+            ),
+
+            /// TIME
+            TextButton(
+              onPressed: () async {
+                selectedTime = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.now(),
+                );
+                setState(() {});
+              },
+              child: Text(
+                selectedTime == null
+                    ? "Choose Time"
+                    : selectedTime!.format(context),
+              ),
+            ),
+
+            OutlinedButton(
+              onPressed: () async {
+                final result = await Navigator.push<LatLng>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const MapTab(isPickingMode: true),
                   ),
+                );
 
-                  SizedBox(height: height * 0.03),
-
-                  /// Submit Button
-                  FilledButton(
-                    onPressed: vm.isLoading ? null : vm.addEvent,
-                    child: vm.isLoading
-                        ? const CircularProgressIndicator()
-                        : Text(AppLocalizations.of(context)!.addEvent),
+                if (result != null) {
+                  setState(() {
+                    selectedLocation = result;
+                  });
+                }
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    selectedLocation == null
+                        ? "Choose Location"
+                        : "Location Selected",
+                  ),
+                  Icon(
+                    selectedLocation == null
+                        ? Icons.arrow_forward_ios_rounded
+                        : Icons.check_circle,
+                    color: selectedLocation == null ? null : Colors.green,
+                    size: 20,
                   ),
                 ],
               ),
-            );
-          },
+            ),
+
+            SizedBox(height: height * 0.03),
+
+            /// ADD EVENT (SAFE)
+            FilledButton(
+              onPressed: () {
+                if (titleController.text.isEmpty) {
+                  showError("Enter title");
+                  return;
+                }
+
+                if (selectedLocation == null) {
+                  showError("Please select location");
+                  return;
+                }
+
+                final event = Event(
+                  title: titleController.text,
+                  description: descriptionController.text,
+                  eventDate: selectedDate?.millisecondsSinceEpoch,
+                  eventTime: selectedTime?.hour,
+                  categoryId: selectedCategory.id,
+                  lat: selectedLocation!.latitude,
+                  lng: selectedLocation!.longitude,
+                );
+
+                homeViewModel.setEventInFirestore(event);
+              },
+              child: Text(AppLocalizations.of(context)!.addEvent),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  /// Navigator callbacks
   @override
   void goToHome() {
     Navigator.pop(context);
@@ -200,16 +228,7 @@ class _EventManagementScreenState extends State<EventManagementScreen>
   void showError(String message) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Error"),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
-          ),
-        ],
-      ),
+      builder: (_) => AlertDialog(content: Text(message)),
     );
   }
 }
